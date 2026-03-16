@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package employer;
+
+service EmployerService {
+    rpc GetByMaticna(EmployerRequest) returns (EmployerResponse);
+}
+
+message EmployerRequest {
+  string maticna_stevilka = 1;
+}
+
+message Employer {
+  string maticna_stevilka = 1;
+  string popolno_ime = 2;
+  string hseid = 3;
+  string pravna_oblika = 4;
+  string registrski_organ = 5;
+  string ulica = 6;
+  string hisna_st = 7;
+  string hisna_st_dodatek = 8;
+  string naselje = 9;
+  string posta_st = 10;
+  string posta = 11;
+  string drzava = 12;
+}
+
+message EmployerResponse {
+    repeated Employer result = 1;
+}
