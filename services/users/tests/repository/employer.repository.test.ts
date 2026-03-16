@@ -96,10 +96,7 @@ describe('EmployerRepository', () => {
     const result = await repo.findByCompanyRegistrationNumber('5002837000');
 
     expect(docMock).toHaveBeenCalledWith('5002837000');
-    expect(result).toEqual({
-      id: '5002837000',
-      employer,
-    });
+    expect(result).toEqual(employer);
   });
 
   it('returns null when employer document does not exist', async () => {

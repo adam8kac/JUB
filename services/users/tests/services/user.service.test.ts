@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import type { UserLoginRequest, UserRegisterRequest, UserResponse } from '../../src/types/user.type.js';
 
-// Hoisted mocks to work with vi.mock hoisting
 const {
   createMock,
   getByEmailMock,
+  getByIdMock,
+  deleteByIdMock,
   generateAccessTokenMock,
   generateRefreshTokenMock,
   generateSHA256Mock,
@@ -13,17 +14,23 @@ const {
 } = vi.hoisted(() => {
   const createMock = vi.fn();
   const getByEmailMock = vi.fn();
+  const getByIdMock = vi.fn();
+  const deleteByIdMock = vi.fn();
   const generateAccessTokenMock = vi.fn();
   const generateRefreshTokenMock = vi.fn();
   const generateSHA256Mock = vi.fn();
   const UserRepositoryMock = vi.fn().mockImplementation(() => ({
     create: createMock,
     getByEmail: getByEmailMock,
+    getById: getByIdMock,
+    deleteById: deleteByIdMock,
   }));
 
   return {
     createMock,
     getByEmailMock,
+    getByIdMock,
+    deleteByIdMock,
     generateAccessTokenMock,
     generateRefreshTokenMock,
     generateSHA256Mock,
@@ -55,6 +62,8 @@ describe('UserService', () => {
     repoMock = {
       create: createMock,
       getByEmail: getByEmailMock,
+      getById: getByIdMock,
+      deleteById: deleteByIdMock,
     };
     service = new UserService(repoMock);
   });
@@ -174,5 +183,117 @@ describe('UserService', () => {
     generateSHA256Mock.mockReturnValueOnce('other-hash');
 
     await expect(service.login(input)).rejects.toThrowError('Incorrect password or username');
+  });
+
+  it('deletes user when it exists', async () => {
+    const userId = 'user-1';
+
+    getByIdMock.mockResolvedValueOnce({
+      id: userId,
+      email: 'user@example.com',
+      name: 'User',
+      password: 'hash',
+    });
+    deleteByIdMock.mockResolvedValueOnce(true);
+
+    await service.deleteById(userId);
+
+    expect(getByIdMock).toHaveBeenCalledWith(userId);
+    expect(deleteByIdMock).toHaveBeenCalledWith(userId);
+  });
+
+  it('throws USER_NOT_FOUND when deleting non-existing user', async () => {
+    const userId = 'missing';
+
+    getByIdMock.mockResolvedValueOnce(null);
+
+    await expect(service.deleteById(userId)).rejects.toThrowError('USER_NOT_FOUND');
+    expect(deleteByIdMock).not.toHaveBeenCalled();
+  });
+
+  it('throws USER_DELETE_FAILED when repository deleteById returns false', async () => {
+    const userId = 'user-1';
+
+    getByIdMock.mockResolvedValueOnce({
+      id: userId,
+      email: 'user@example.com',
+      name: 'User',
+      password: 'hash',
+    });
+    deleteByIdMock.mockResolvedValueOnce(false);
+
+    await expect(service.deleteById(userId)).rejects.toThrowError('USER_DELETE_FAILED');
+  });
+
+  it('returns user by id without password', async () => {
+    const userId = 'user-1';
+    getByIdMock.mockResolvedValueOnce({
+      id: userId,
+      email: 'user@example.com',
+      name: 'User',
+      password: 'hash',
+    });
+
+    const result = await service.getById(userId);
+
+    expect(getByIdMock).toHaveBeenCalledWith(userId);
+    expect(result).toEqual({
+      id: userId,
+      email: 'user@example.com',
+      name: 'User',
+    });
+  });
+
+  it('returns null when user by id does not exist', async () => {
+    getByIdMock.mockResolvedValueOnce(null);
+
+    const result = await service.getById('missing');
+
+    expect(result).toBeNull();
+  });
+
+  it('returns user by email without password', async () => {
+    const email = 'user@example.com';
+    getByEmailMock.mockResolvedValueOnce({
+      id: 'user-1',
+      email,
+      name: 'User',
+      password: 'hash',
+    });
+
+    const result = await service.getByEmail(email);
+
+    expect(getByEmailMock).toHaveBeenCalledWith(email);
+    expect(result).toEqual({
+      id: 'user-1',
+      email,
+      name: 'User',
+    });
+  });
+
+  it('returns null when user by email does not exist', async () => {
+    getByEmailMock.mockResolvedValueOnce(null);
+
+    const result = await service.getByEmail('missing@example.com');
+
+    expect(result).toBeNull();
+  });
+
+  it('returns all users without passwords', async () => {
+    const docs = [
+      { id: '1', email: 'u1@example.com', name: 'U1', password: 'p1' },
+      { id: '2', email: 'u2@example.com', name: 'U2', password: 'p2' },
+    ];
+
+    (repoMock.getAll as any) = vi.fn().mockResolvedValueOnce(docs);
+    service = new UserService(repoMock);
+
+    const result = await service.getAll();
+
+    expect(repoMock.getAll as any).toHaveBeenCalled();
+    expect(result).toEqual([
+      { id: '1', email: 'u1@example.com', name: 'U1' },
+      { id: '2', email: 'u2@example.com', name: 'U2' },
+    ]);
   });
 });
