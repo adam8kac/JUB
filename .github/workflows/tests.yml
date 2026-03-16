@@ -4,8 +4,12 @@ on:
     branches:
       - main
 
+defaults:
+  run:
+    working-directory: services/users
+
 jobs:
-  tests:
+  tests-auth:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,6 +26,7 @@ jobs:
         with:
           node-version: 25
           cache: 'pnpm'
+          cache-dependency-path: services/users/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install
