@@ -19,16 +19,14 @@ has_run_today = False
 
 class Downloader:
     def download_csv(self, url=DOWNLOAD_FROM):
-        response = requests.get(url)
+        response = requests.get(url, stream=True, timeout=120)
 
         if response.status_code == 200:
-            response.encoding = "utf-16"
-            text = response.text
+            raw_bytes = b"".join(response.iter_content(chunk_size=8192))
+            text = raw_bytes.decode("utf-16")
 
             with open(FILE_NAME, "w", encoding="utf-8") as csv_fw:
                 csv_fw.write(text)
-                csv_fw.flush()
-                csv_fw.close()
 
             print("Data saved to", FILE_NAME)
             return True
@@ -121,7 +119,9 @@ def serve_grpc():
 
 
 if __name__ == "__main__":
+    print("Starting...")
     if Downloader().download_csv():
+        print("downloading...")
         refresh_df()
     else:
         raise RuntimeError("CSV download failed")
