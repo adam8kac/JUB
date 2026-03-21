@@ -47,4 +47,4 @@ jobs:
         with:
           context: ./services/hub
           push: true
-          tag: ${{ secrets.DOCKERHUB_USERNAME }}/ita_hub:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ita_hub:latest

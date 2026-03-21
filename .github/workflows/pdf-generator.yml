@@ -50,4 +50,4 @@ jobs:
         with:
           context: ./services/pdf_generator
           push: true
-          tag: ${{ secrets.DOCKERHUB_USERNAME }}/ita_pdf:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ita_pdf:latest
