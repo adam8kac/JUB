@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+
 RUN npm ci
 
 COPY . .
@@ -18,7 +20,9 @@ COPY --from=build /app/dist ./dist
 
 COPY --from=build /app/package.json /app/package-lock.json ./
 
-RUN npm ci
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+
+RUN npm ci --omit=dev
 
 EXPOSE 3000
 
