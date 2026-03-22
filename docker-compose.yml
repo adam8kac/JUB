@@ -1,0 +1,101 @@
+version: '3.9'
+
+networks:
+  jub-net:
+    driver: bridge
+
+services:
+
+  # ── OPSI – Slovenian employer registry (gRPC) ─────────────────────────────
+  opsi:
+    build:
+      context: ./helpers/opsi
+    ports:
+      - "50051:50051"
+    networks:
+      - jub-net
+    restart: unless-stopped
+
+  # ── Users / Auth service ───────────────────────────────────────────────────
+  users:
+    build:
+      context: ./services/users
+    ports:
+      - "3001:3000"
+    env_file:
+      - ./services/users/.env
+    environment:
+      PORT: "3000"
+      RPC_SERVICE_HOST: "opsi:50051"
+    depends_on:
+      - opsi
+    networks:
+      - jub-net
+    restart: unless-stopped
+
+  # ── PDF Generator service ──────────────────────────────────────────────────
+  pdf-generator:
+    build:
+      context: ./services/pdf_generator
+    ports:
+      - "3002:3000"
+    env_file:
+      - ./services/pdf_generator/.env
+    environment:
+      PORT: "3000"
+    networks:
+      - jub-net
+    restart: unless-stopped
+
+  # ── Hub service (Spring WebFlux + PostgreSQL/Supabase) ─────────────────────
+  hub:
+    build:
+      context: ./services/hub
+    ports:
+      - "8081:8080"
+    env_file:
+      - ./services/hub/.env
+    environment:
+      PDF_GENERATOR_URL: "http://pdf-generator:3000"
+    depends_on:
+      - pdf-generator
+    networks:
+      - jub-net
+    restart: unless-stopped
+
+  # ── Web API Gateway (Hono) ─────────────────────────────────────────────────
+  web-gateway:
+    build:
+      context: ./gateways/web
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./gateways/web/.env
+    environment:
+      PORT: "3000"
+      USERS_SERVICE_URL: "http://users:3000"
+      HUB_SERVICE_URL: "http://hub:8080"
+      PDF_GENERATOR_URL: "http://pdf-generator:3000"
+    depends_on:
+      - users
+      - hub
+      - pdf-generator
+    networks:
+      - jub-net
+    restart: unless-stopped
+
+  # ── Mobile API Gateway (Go) ────────────────────────────────────────────────
+  mobile-gateway:
+    build:
+      context: ./gateways/mobile
+    ports:
+      - "8082:8082"
+    environment:
+      PORT: "8082"
+      USER_AUTH: "http://users:3000/auth"
+      EMPLOYER_AUTH: "http://users:3000/employer"
+    depends_on:
+      - users
+    networks:
+      - jub-net
+    restart: unless-stopped

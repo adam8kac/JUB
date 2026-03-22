@@ -11,6 +11,7 @@ const PORT = process.env['PORT'] ?? 3000;
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api', appRoutes);
+app.use('/', appRoutes);
 
 app.listen(PORT, () => {
   console.log(`pdf_generator running on port ${PORT}`);

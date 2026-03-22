@@ -177,4 +177,53 @@ router.get('/cv/:uid/pdf', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/cvs:
+ *   get:
+ *     summary: List all CVs
+ *     tags: [CV]
+ *     responses:
+ *       200:
+ *         description: Array of CV data
+ */
+router.get('/cvs', async (_req: Request, res: Response) => {
+  try {
+    const data = await cvService.getAllCVs();
+    res.json(data);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Failed to fetch CVs';
+    res.status(500).json({ error: msg });
+  }
+});
+
+/**
+ * @swagger
+ * /api/cvs/{uid}:
+ *   get:
+ *     summary: Get CV data by uid (alias for /api/cv/{uid})
+ *     tags: [CV]
+ *     parameters:
+ *       - in: path
+ *         name: uid
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: CV data
+ *       404:
+ *         description: CV not found
+ */
+router.get('/cvs/:uid', async (req: Request, res: Response) => {
+  try {
+    const uid = req.params['uid'] as string;
+    const data = await cvService.getCVData(uid);
+    res.json(data);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'CV not found';
+    res.status(404).json({ error: msg });
+  }
+});
+
 export default router;

@@ -23,13 +23,19 @@ import { CVService } from './cv.service.js';
 import { generateCvPdf } from './pdf.service.js';
 
 const mockCV: CVData = {
-  name: 'Janez',
-  lastname: 'Novak',
-  email: 'janez@novak.si',
-  phoneNumber: '123456789',
-  age: '25',
-  description: 'Razvijalec',
-  education: ['FRI Ljubljana 2023'],
+  personalInfo: {
+    firstName: 'Janez',
+    lastName: 'Novak',
+    email: 'janez@novak.si',
+    phone: '123456789',
+    location: 'Ljubljana',
+  },
+  summary: 'Razvijalec',
+  experience: [],
+  education: [
+    { institution: 'FRI Ljubljana', degree: 'Visoka šola (BSc)', field: 'Računalništvo', startDate: '2020-09', endDate: '2023-07' },
+  ],
+  skills: ['TypeScript', 'Node.js'],
 };
 
 describe('CVService', () => {
@@ -80,7 +86,7 @@ describe('CVService', () => {
     it('vrže napako če CV ne obstaja', async () => {
       mockRepo.get.mockResolvedValue(null);
 
-      await expect(service.updateCV('user1', { name: 'Test' })).rejects.toThrow('CV not found');
+      await expect(service.updateCV('user1', { summary: 'Test' })).rejects.toThrow('CV not found');
       expect(mockRepo.update).not.toHaveBeenCalled();
     });
 
@@ -88,9 +94,9 @@ describe('CVService', () => {
       mockRepo.get.mockResolvedValue(mockCV);
       mockRepo.update.mockResolvedValue(undefined);
 
-      await service.updateCV('user1', { name: 'Novo ime' });
+      await service.updateCV('user1', { summary: 'Novo ime' });
 
-      expect(mockRepo.update).toHaveBeenCalledWith('user1', { name: 'Novo ime' });
+      expect(mockRepo.update).toHaveBeenCalledWith('user1', { summary: 'Novo ime' });
     });
   });
 

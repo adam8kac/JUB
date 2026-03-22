@@ -6,5 +6,5 @@ export interface CVDao {
   delete(id: string): Promise<void>;
   update(id: string, data: Partial<CVData>): Promise<void>;
   getAll(): Promise<CVData[]>;
-  exists(uid: string, email: string, phoneNumber: string): Promise<boolean>;
+  exists(uid: string, email?: string, phoneNumber?: string): Promise<boolean>;
 }

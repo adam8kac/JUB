@@ -5,9 +5,13 @@ import { generateCvPdf } from './pdf.service.js';
 export class CVService {
   private repository = new CVRepository();
 
+  async getAllCVs(): Promise<CVData[]> {
+    return this.repository.getAll();
+  }
+
   async saveCV(uid: string, data: CVData): Promise<void> {
     console.log('[saveCV] Checking if CV exists...');
-    const alreadyExists = await this.repository.exists(uid, data.email, data.phoneNumber);
+    const alreadyExists = await this.repository.exists(uid, data.personalInfo?.email, data.personalInfo?.phone);
     console.log('[saveCV] exists check done:', alreadyExists);
     if (alreadyExists) {
       throw new Error('CV already exists for this user, email or phone number');
@@ -55,7 +59,8 @@ export class CVService {
 
       return await generateCvPdf(data);
     } catch (err) {
-      throw new Error('Could not fetch CV data');
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Could not generate PDF: ${msg}`);
     }
   }
 }

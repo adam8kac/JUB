@@ -42,8 +42,10 @@ public class InboxService {
     }
 
     public Flux<InboxEntry> getInbox(String userId) {
-        return repository.findByReceiverId(userId)
-                .doOnError(e -> log.error("Error fetching inbox for {}: {}", userId, e.getMessage()));
+        return Flux.merge(
+                repository.findByReceiverId(userId),
+                repository.findBySenderId(userId)
+        ).doOnError(e -> log.error("Error fetching inbox for {}: {}", userId, e.getMessage()));
     }
 
     public Mono<InboxEntry> respond(Long id, String receiverUid, Boolean accepted) {

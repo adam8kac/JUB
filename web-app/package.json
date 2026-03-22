@@ -1,0 +1,13 @@
+{
+  "name": "jub-web-app",
+  "private": true,
+  "workspaces": ["shell", "mfe-auth", "mfe-jobs", "mfe-cv", "mfe-hub"],
+  "scripts": {
+    "dev": "npm run build && concurrently \"npm run preview --workspace=mfe-auth\" \"npm run preview --workspace=mfe-jobs\" \"npm run preview --workspace=mfe-cv\" \"npm run preview --workspace=mfe-hub\" \"npm run preview --workspace=shell\"",
+    "build:mfes": "npm run build --workspace=mfe-auth && npm run build --workspace=mfe-jobs && npm run build --workspace=mfe-cv && npm run build --workspace=mfe-hub",
+    "build": "npm run build:mfes && npm run build --workspace=shell"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

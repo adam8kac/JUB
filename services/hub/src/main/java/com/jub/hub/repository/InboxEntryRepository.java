@@ -8,4 +8,5 @@ import reactor.core.publisher.Flux;
 @Repository
 public interface InboxEntryRepository extends ReactiveCrudRepository<InboxEntry, Long> {
     Flux<InboxEntry> findByReceiverId(String receiverId);
+    Flux<InboxEntry> findBySenderId(String senderId);
 }

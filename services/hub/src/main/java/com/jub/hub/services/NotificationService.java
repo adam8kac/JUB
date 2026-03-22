@@ -20,11 +20,17 @@ public class NotificationService {
                 userId,
                 uid -> Sinks.many().multicast().onBackpressureBuffer()
         );
-        return sink.asFlux()
-                .doFinally(signal -> {
-                    log.debug("SSE connection closed for user {}: {}", userId, signal);
-                    sinks.remove(userId);
-                });
+        ServerSentEvent<String> connected = ServerSentEvent.<String>builder()
+                .event("connected")
+                .data("{\"type\":\"connected\",\"userId\":\"" + userId + "\"}")
+                .build();
+        return Flux.concat(
+                Flux.just(connected),
+                sink.asFlux()
+        ).doFinally(signal -> {
+            log.debug("SSE connection closed for user {}: {}", userId, signal);
+            sinks.remove(userId);
+        });
     }
 
     public void notify(String userId, String message) {

@@ -27,3 +27,4 @@ if (process.env['GOOGLE_APPLICATION_CREDENTIALS']) {
 }
 
 export const db = getFirestore();
+db.settings({ ignoreUndefinedProperties: true });

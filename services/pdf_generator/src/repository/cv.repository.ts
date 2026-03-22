@@ -28,13 +28,20 @@ export class CVRepository implements CVDao {
     await this.collectionRef.doc(id).delete();
   }
 
-  async exists(uid: string, email: string, phoneNumber: string): Promise<boolean> {
-    const [byUid, byEmail, byPhone] = await Promise.all([
-      this.collectionRef.doc(uid).get(),
-      this.collectionRef.where('email', '==', email).limit(1).get(),
-      this.collectionRef.where('phoneNumber', '==', phoneNumber).limit(1).get(),
-    ]);
+  async exists(uid: string, email?: string, phoneNumber?: string): Promise<boolean> {
+    const byUid = await this.collectionRef.doc(uid).get();
+    if (byUid.exists) return true;
 
-    return byUid.exists || !byEmail.empty || !byPhone.empty;
+    if (email) {
+      const byEmail = await this.collectionRef.where('personalInfo.email', '==', email).limit(1).get();
+      if (!byEmail.empty) return true;
+    }
+
+    if (phoneNumber) {
+      const byPhone = await this.collectionRef.where('personalInfo.phone', '==', phoneNumber).limit(1).get();
+      if (!byPhone.empty) return true;
+    }
+
+    return false;
   }
 }

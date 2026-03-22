@@ -34,12 +34,16 @@ public class JwtFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
+        String queryToken = exchange.getRequest().getQueryParams().getFirst("token");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        String token;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        } else if (queryToken != null) {
+            token = queryToken;
+        } else {
             return chain.filter(exchange);
         }
-
-        String token = authHeader.substring(7);
 
         try {
             String uid = extractUid(token);
