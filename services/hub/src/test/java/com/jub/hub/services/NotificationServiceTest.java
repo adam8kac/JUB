@@ -23,6 +23,7 @@ class NotificationServiceTest {
         StepVerifier.withVirtualTime(() ->
                         service.subscribe("user-1")
                                 .doOnSubscribe(s -> service.notify("user-1", "hello"))
+                                .skip(1)
                                 .take(1)
                 )
                 .thenAwait(Duration.ofMillis(100))
@@ -38,9 +39,9 @@ class NotificationServiceTest {
 
     @Test
     void subscribe_multipleUsers_independentStreams() {
-        // Subscribe two different users
-        var flux1 = service.subscribe("user-A").take(1);
-        var flux2 = service.subscribe("user-B").take(1);
+        // Subscribe two different users — skip(1) to bypass the initial connected event
+        var flux1 = service.subscribe("user-A").skip(1).take(1);
+        var flux2 = service.subscribe("user-B").skip(1).take(1);
 
         service.notify("user-A", "msg-for-A");
 
@@ -58,7 +59,7 @@ class NotificationServiceTest {
 
     @Test
     void notify_messageContainedInEvent() {
-        var flux = service.subscribe("user-x").take(1);
+        var flux = service.subscribe("user-x").skip(1).take(1);
 
         service.notify("user-x", "{\"type\":\"NEW_REQUEST\",\"requestId\":42}");
 

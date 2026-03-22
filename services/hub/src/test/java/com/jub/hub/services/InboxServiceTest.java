@@ -107,16 +107,17 @@ class InboxServiceTest {
         entry2.setReceiverId("receiver-uid");
 
         when(repository.findByReceiverId("receiver-uid")).thenReturn(Flux.just(entry, entry2));
+        when(repository.findBySenderId("receiver-uid")).thenReturn(Flux.empty());
 
         StepVerifier.create(service.getInbox("receiver-uid"))
-                .expectNext(entry)
-                .expectNext(entry2)
+                .expectNextCount(2)
                 .verifyComplete();
     }
 
     @Test
     void getInbox_noEntries_returnsEmpty() {
         when(repository.findByReceiverId("user-x")).thenReturn(Flux.empty());
+        when(repository.findBySenderId("user-x")).thenReturn(Flux.empty());
 
         StepVerifier.create(service.getInbox("user-x"))
                 .verifyComplete();

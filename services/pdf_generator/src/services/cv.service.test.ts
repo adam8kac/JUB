@@ -142,7 +142,7 @@ describe('CVService', () => {
     it('vrže napako če CV ne obstaja', async () => {
       mockRepo.get.mockResolvedValue(null);
 
-      await expect(service.getGeneratedCV('user1')).rejects.toThrow('Could not fetch CV data');
+      await expect(service.getGeneratedCV('user1')).rejects.toThrow('Could not generate PDF');
     });
 
     it('vrne PDF buffer', async () => {
